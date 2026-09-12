@@ -16,7 +16,7 @@ public class L3_CrossZone : MonoBehaviour
     void Start()
     {
         GetComponent<Collider>().isTrigger = true;
-        // No renderer on this trigger zone — it's invisible by design
+        GetComponent<Renderer>().enabled   = false; // invisible
     }
 
     void OnTriggerEnter(Collider other)
