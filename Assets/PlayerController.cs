@@ -15,6 +15,7 @@ public class PlayerController : MonoBehaviour
     private float xRotation = 0f;
     private Camera playerCamera;
     private MouseLook mouseLook;
+    private float jumpBufferTimer = 0f;
 
     void Start()
     {
@@ -43,6 +44,7 @@ public class PlayerController : MonoBehaviour
     public void ResetVelocity()
     {
         velocity = Vector3.zero;
+        jumpBufferTimer = 0f;
     }
 
     void Move()
@@ -50,25 +52,32 @@ public class PlayerController : MonoBehaviour
         if (controller == null)
             return;
 
-        // Ground detection: check CharacterController flag or downward raycast (useful on corpses)
-        bool isGrounded = controller.isGrounded || Physics.Raycast(transform.position, Vector3.down, 1.15f);
+        // Ground detection: CharacterController flag or downward raycast
+        bool isGrounded = controller.isGrounded || Physics.Raycast(transform.position, Vector3.down, 1.2f);
 
-        if (isGrounded)
+        if (isGrounded && velocity.y < 0)
         {
-            if (velocity.y < 0)
-            {
-                velocity.y = -2f;
-            }
-
-            // Jump
-            if (Input.GetButtonDown("Jump") || Input.GetKeyDown(KeyCode.Space))
-            {
-                velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-                Debug.Log("JUMP!");
-            }
+            velocity.y = -2f;
         }
 
-        // WASD movement (horizontal/vertical)
+        // Jump input buffering for crisp responsive jumping
+        if (Input.GetButtonDown("Jump") || Input.GetKeyDown(KeyCode.Space))
+        {
+            jumpBufferTimer = 0.2f;
+        }
+        else
+        {
+            jumpBufferTimer -= Time.deltaTime;
+        }
+
+        if (isGrounded && jumpBufferTimer > 0f)
+        {
+            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            jumpBufferTimer = 0f;
+            Debug.Log("JUMP!");
+        }
+
+        // WASD movement
         float x = Input.GetAxis("Horizontal");
         float z = Input.GetAxis("Vertical");
 
@@ -100,6 +109,23 @@ public class PlayerController : MonoBehaviour
         if (playerCamera != null)
         {
             playerCamera.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+        }
+    }
+
+    void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        if (hit.gameObject != null)
+        {
+            PressurePlate plate = hit.gameObject.GetComponent<PressurePlate>();
+            if (plate == null)
+            {
+                plate = hit.gameObject.GetComponentInParent<PressurePlate>();
+            }
+
+            if (plate != null)
+            {
+                plate.TriggerPlate();
+            }
         }
     }
 }
