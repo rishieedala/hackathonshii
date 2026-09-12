@@ -2,33 +2,104 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    public float moveSpeed = 5f;
+    [Header("Movement Settings")]
+    public float moveSpeed = 2f;
+    public float jumpHeight = 1.5f;
+    public float gravity = -9.81f;
 
-    private Rigidbody rb;
+    [Header("Look Settings")]
+    public float mouseSensitivity = 200f;
+
+    private CharacterController controller;
+    private Vector3 velocity;
+    private float xRotation = 0f;
+    private Camera playerCamera;
+    private MouseLook mouseLook;
 
     void Start()
     {
-        rb = GetComponent<Rigidbody>();
-        if (rb != null)
+        controller = GetComponent<CharacterController>();
+        playerCamera = GetComponentInChildren<Camera>();
+        if (playerCamera != null)
         {
-            rb.freezeRotation = true;
+            mouseLook = playerCamera.GetComponent<MouseLook>();
+        }
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
+    void Update()
+    {
+        Move();
+
+        // Only handle rotation here if MouseLook component is not handling it
+        if (mouseLook == null)
+        {
+            Look();
         }
     }
 
-    void FixedUpdate()
+    public void ResetVelocity()
     {
-        float x = Input.GetAxisRaw("Horizontal");
-        float z = Input.GetAxisRaw("Vertical");
+        velocity = Vector3.zero;
+    }
 
-        Vector3 movement = transform.right * x + transform.forward * z;
-        movement.y = 0f;
-        if (movement.sqrMagnitude > 1f)
+    void Move()
+    {
+        if (controller == null)
+            return;
+
+        // Ground detection: check CharacterController flag or downward raycast (useful on corpses)
+        bool isGrounded = controller.isGrounded || Physics.Raycast(transform.position, Vector3.down, 1.15f);
+
+        if (isGrounded)
         {
-            movement.Normalize();
+            if (velocity.y < 0)
+            {
+                velocity.y = -2f;
+            }
+
+            // Jump
+            if (Input.GetButtonDown("Jump") || Input.GetKeyDown(KeyCode.Space))
+            {
+                velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+                Debug.Log("JUMP!");
+            }
         }
 
-        rb.MovePosition(
-            rb.position + movement * moveSpeed * Time.fixedDeltaTime
-        );
+        // WASD movement (horizontal/vertical)
+        float x = Input.GetAxis("Horizontal");
+        float z = Input.GetAxis("Vertical");
+
+        Vector3 move = transform.right * x + transform.forward * z;
+        if (move.sqrMagnitude > 1f)
+        {
+            move.Normalize();
+        }
+
+        controller.Move(move * moveSpeed * Time.deltaTime);
+
+        // Apply gravity
+        velocity.y += gravity * Time.deltaTime;
+
+        // Apply vertical movement
+        controller.Move(velocity * Time.deltaTime);
+    }
+
+    void Look()
+    {
+        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
+        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
+
+        transform.Rotate(Vector3.up * mouseX);
+
+        xRotation -= mouseY;
+        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
+
+        if (playerCamera != null)
+        {
+            playerCamera.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+        }
     }
 }
