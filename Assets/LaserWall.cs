@@ -1,14 +1,11 @@
 using UnityEngine;
 
 /// <summary>
-/// Laser wall that blocks movement via a BoxCollider on this object,
-/// and controls visual beams via Renderer components in child objects.
-///
-/// Parent: BoxCollider (full height, invisible blocker) + this script
-/// Children: thin red beam GameObjects (MeshRenderer)
-///
-/// When controlledByPlate is activated → permanently disable.
+/// A laser wall (or blocking wall) that can be toggled visible/solid or permanently disabled.
+/// Starts visible+blocking or invisible+passable depending on settings.
+/// When a controlling PressurePlate is set and gets activated, the wall is permanently disabled.
 /// </summary>
+[RequireComponent(typeof(Renderer))]
 [RequireComponent(typeof(Collider))]
 public class LaserWall : MonoBehaviour
 {
@@ -17,20 +14,20 @@ public class LaserWall : MonoBehaviour
     public bool startBlocking = true;
 
     [Header("Control Plate (optional)")]
-    [Tooltip("When this plate is activated, the laser is permanently disabled.")]
+    [Tooltip("If this plate is activated, the laser is permanently disabled.")]
     public PressurePlate controlledByPlate;
 
-    private Renderer[] beamRenderers;
-    private Collider   col;
-    private bool       permanentlyOff = false;
+    private new Renderer renderer;
+    private Collider col;
+    private bool permanentlyOff = false;
 
     void Start()
     {
-        col           = GetComponent<Collider>();
-        beamRenderers = GetComponentsInChildren<Renderer>(true);
+        renderer = GetComponent<Renderer>();
+        col      = GetComponent<Collider>();
 
-        SetRenderers(startVisible);
-        col.enabled = startBlocking;
+        renderer.enabled = startVisible;
+        col.enabled      = startBlocking;
     }
 
     void Update()
@@ -39,34 +36,28 @@ public class LaserWall : MonoBehaviour
             PermanentlyDisable();
     }
 
-    /// <summary>Make beams visible + collider solid (called when clone reaches trigger).</summary>
+    /// <summary>Make the laser visible and solid (called by L3_LevelManager when clone arrives).</summary>
     public void Activate()
     {
         if (permanentlyOff) return;
-        SetRenderers(true);
-        col.enabled = true;
+        renderer.enabled = true;
+        col.enabled      = true;
     }
 
-    /// <summary>Hide beams, keep collider off.</summary>
+    /// <summary>Hide and make passable — but can re-activate.</summary>
     public void Deactivate()
     {
-        SetRenderers(false);
-        col.enabled = false;
+        renderer.enabled = false;
+        col.enabled      = false;
     }
 
     /// <summary>Permanently turn off — cannot be re-enabled.</summary>
     public void PermanentlyDisable()
     {
-        permanentlyOff = true;
-        Deactivate();
+        permanentlyOff   = true;
+        renderer.enabled = false;
+        col.enabled      = false;
     }
 
     public bool IsPermanentlyOff() => permanentlyOff;
-
-    private void SetRenderers(bool on)
-    {
-        if (beamRenderers == null) return;
-        foreach (var r in beamRenderers)
-            r.enabled = on;
-    }
 }
