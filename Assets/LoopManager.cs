@@ -5,6 +5,7 @@ public class LoopManager : MonoBehaviour
 {
     public float loopDuration = 24f;
     public Transform player;
+    public GameObject ghostPrefab;
 
     private float timer;
 
@@ -51,29 +52,40 @@ public class LoopManager : MonoBehaviour
     }
 
     void ResetLoop()
+{
+    completedLoops.Add(currentRecording);
+
+    Debug.Log(
+        "Loop saved! Total loops: " + completedLoops.Count
+    );
+
+    GameObject ghostObject = Instantiate(
+        ghostPrefab,
+        startPosition,
+        startRotation
+    );
+
+    GhostReplay ghost = ghostObject.GetComponent<GhostReplay>();
+
+    ghost.SetRecording(currentRecording);
+
+    player.position = startPosition;
+    player.rotation = startRotation;
+
+    Rigidbody rb = player.GetComponent<Rigidbody>();
+
+    if (rb != null)
     {
-        // Save this loop
-        completedLoops.Add(currentRecording);
-
-        Debug.Log(
-            "Loop saved! Total loops: " + completedLoops.Count
-        );
-
-        // Reset player
-        player.position = startPosition;
-        player.rotation = startRotation;
-
-        Rigidbody rb = player.GetComponent<Rigidbody>();
-
-        if (rb != null)
-        {
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
-        }
-
-        // Start recording a new loop
-        currentRecording = new LoopRecording();
-
-        timer = loopDuration;
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
     }
+
+    currentRecording = new LoopRecording();
+
+    timer = loopDuration;
+}
+public float GetTimeLeft()
+{
+    return timer;
+}
 }
