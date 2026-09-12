@@ -109,12 +109,4 @@ public class LoopManager : MonoBehaviour
     {
         return timer;
     }
-
-    /// <summary>
-    /// Called by LoopResetTrigger to immediately end the current recording and spawn a ghost.
-    /// </summary>
-    public void ForceResetLoop()
-    {
-        ResetLoop();
-    }
 }
