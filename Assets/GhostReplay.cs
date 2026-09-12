@@ -4,11 +4,41 @@ public class GhostReplay : MonoBehaviour
 {
     private LoopRecording recording;
     private float replayTime;
+    private Rigidbody rb;
+
+    void Awake()
+    {
+        gameObject.tag = "Ghost";
+        SetLayerRecursively(gameObject, 0); // Ensure ghost is on Default layer (0) so it's visible to camera
+
+        rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.isKinematic = true;
+            rb.useGravity = false;
+        }
+    }
+
+    private void SetLayerRecursively(GameObject obj, int newLayer)
+    {
+        obj.layer = newLayer;
+        foreach (Transform child in obj.transform)
+        {
+            SetLayerRecursively(child.gameObject, newLayer);
+        }
+    }
 
     public void SetRecording(LoopRecording newRecording)
     {
         recording = newRecording;
         replayTime = 0f;
+        ApplyFrame(0f);
+    }
+
+    public void ResetReplay()
+    {
+        replayTime = 0f;
+        ApplyFrame(0f);
     }
 
     void Update()
@@ -23,10 +53,24 @@ public class GhostReplay : MonoBehaviour
             replayTime = recording.frames[recording.frames.Count - 1].time;
         }
 
-        PlayerFrame frame = GetFrameAtTime(replayTime);
+        ApplyFrame(replayTime);
+    }
+
+    private void ApplyFrame(float time)
+    {
+        if (recording == null || recording.frames.Count == 0)
+            return;
+
+        PlayerFrame frame = GetFrameAtTime(time);
 
         transform.position = frame.position;
         transform.rotation = frame.rotation;
+
+        if (rb != null)
+        {
+            rb.position = frame.position;
+            rb.rotation = frame.rotation;
+        }
     }
 
     PlayerFrame GetFrameAtTime(float time)

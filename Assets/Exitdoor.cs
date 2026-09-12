@@ -15,9 +15,15 @@ public class ExitDoor : MonoBehaviour
 
     void Update()
     {
+        if (pressurePlate == null)
+            return;
+
         bool shouldOpen = pressurePlate.activated;
 
-        doorRenderer.enabled = !shouldOpen;
-        doorCollider.enabled = !shouldOpen;
+        if (doorRenderer != null)
+            doorRenderer.enabled = !shouldOpen;
+
+        if (doorCollider != null)
+            doorCollider.enabled = !shouldOpen;
     }
 }

@@ -52,38 +52,52 @@ public class LoopManager : MonoBehaviour
     }
 
     void ResetLoop()
-{
-    completedLoops.Add(currentRecording);
-
-    Debug.Log(
-        "Loop saved! Total loops: " + completedLoops.Count
-    );
-
-    GameObject ghostObject = Instantiate(
-        ghostPrefab,
-        startPosition,
-        startRotation
-    );
-
-    GhostReplay ghost = ghostObject.GetComponent<GhostReplay>();
-
-    ghost.SetRecording(currentRecording);
-
-    player.position = startPosition;
-    player.rotation = startRotation;
-
-    Rigidbody rb = player.GetComponent<Rigidbody>();
-
-    if (rb != null)
     {
-        rb.linearVelocity = Vector3.zero;
-        rb.angularVelocity = Vector3.zero;
+        completedLoops.Add(currentRecording);
+
+        Debug.Log(
+            "Loop saved! Total loops: " + completedLoops.Count
+        );
+
+        GameObject ghostObject = Instantiate(
+            ghostPrefab,
+            startPosition,
+            startRotation
+        );
+        ghostObject.tag = "Ghost";
+
+        GhostReplay ghost = ghostObject.GetComponent<GhostReplay>();
+        if (ghost != null)
+        {
+            ghost.SetRecording(currentRecording);
+        }
+
+        // Restart all active ghosts to sync with new loop
+        GhostReplay[] allGhosts = FindObjectsByType<GhostReplay>(FindObjectsSortMode.None);
+        foreach (var g in allGhosts)
+        {
+            g.ResetReplay();
+        }
+
+        player.position = startPosition;
+        player.rotation = startRotation;
+
+        Rigidbody rb = player.GetComponent<Rigidbody>();
+
+        if (rb != null)
+        {
+            rb.position = startPosition;
+            rb.rotation = startRotation;
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+
+        Physics.SyncTransforms();
+
+        currentRecording = new LoopRecording();
+
+        timer = loopDuration;
     }
-
-    currentRecording = new LoopRecording();
-
-    timer = loopDuration;
-}
 public float GetTimeLeft()
 {
     return timer;
