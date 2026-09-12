@@ -7,12 +7,18 @@ public class LoopManager : MonoBehaviour
     public Transform player;
     public GameObject ghostPrefab;
 
+    [Tooltip("Max simultaneous ghosts. Set to 1 for Level 1, 2 for Level 2.")]
+    public int maxGhosts = 1;
+
     private float timer;
 
     private Vector3 startPosition;
     private Quaternion startRotation;
 
     private LoopRecording currentRecording;
+
+    // Queue tracks active ghosts oldest-first
+    private readonly Queue<GameObject> activeGhosts = new Queue<GameObject>();
 
     public List<LoopRecording> completedLoops = new List<LoopRecording>();
 
@@ -53,11 +59,17 @@ public class LoopManager : MonoBehaviour
 
     void ResetLoop()
     {
+        // If at capacity, destroy the oldest ghost
+        if (activeGhosts.Count >= maxGhosts)
+        {
+            GameObject oldest = activeGhosts.Dequeue();
+            if (oldest != null)
+                Destroy(oldest);
+        }
+
         completedLoops.Add(currentRecording);
 
-        Debug.Log(
-            "Loop saved! Total loops: " + completedLoops.Count
-        );
+        Debug.Log("Loop saved! Active ghosts: " + (activeGhosts.Count + 1) + "/" + maxGhosts);
 
         GameObject ghostObject = Instantiate(
             ghostPrefab,
@@ -65,18 +77,12 @@ public class LoopManager : MonoBehaviour
             startRotation
         );
         ghostObject.tag = "Ghost";
+        activeGhosts.Enqueue(ghostObject);
 
         GhostReplay ghost = ghostObject.GetComponent<GhostReplay>();
         if (ghost != null)
         {
             ghost.SetRecording(currentRecording);
-        }
-
-        // Restart all active ghosts to sync with new loop
-        GhostReplay[] allGhosts = FindObjectsByType<GhostReplay>(FindObjectsSortMode.None);
-        foreach (var g in allGhosts)
-        {
-            g.ResetReplay();
         }
 
         player.position = startPosition;
@@ -98,8 +104,9 @@ public class LoopManager : MonoBehaviour
 
         timer = loopDuration;
     }
-public float GetTimeLeft()
-{
-    return timer;
-}
+
+    public float GetTimeLeft()
+    {
+        return timer;
+    }
 }
