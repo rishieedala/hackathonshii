@@ -20,4 +20,10 @@ public class WinScreen : MonoBehaviour
         Time.timeScale = 1f;
         SceneManager.LoadScene("Level2");
     }
+
+    public void GoToLevel3()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("Level3");
+    }
 }
