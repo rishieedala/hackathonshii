@@ -3,7 +3,6 @@ using UnityEngine;
 public class WinZone : MonoBehaviour
 {
     public WinScreen winScreen;
-    public Level2Timer level2Timer; // Optional — only set in Level 2
 
     private bool won = false;
 
@@ -13,14 +12,9 @@ public class WinZone : MonoBehaviour
         {
             won = true;
 
-            // Stop the level timer if present (Level 2)
-            if (level2Timer != null)
-                level2Timer.StopTimer();
+            winScreen.ShowWinScreen();
 
-            if (winScreen != null)
-                winScreen.ShowWinScreen();
-
-            Debug.Log("LEVEL COMPLETE!");
+            Debug.Log("LEVEL 1 COMPLETE!");
         }
     }
 }
