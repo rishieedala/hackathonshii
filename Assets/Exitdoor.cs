@@ -6,11 +6,15 @@ public class ExitDoor : MonoBehaviour
 
     private Renderer doorRenderer;
     private Collider doorCollider;
+    private Vector3 closedPos;
+    private Vector3 openPos;
 
     void Start()
     {
         doorRenderer = GetComponent<Renderer>();
         doorCollider = GetComponent<Collider>();
+        closedPos = transform.position;
+        openPos = closedPos + new Vector3(0, 3.2f, 0); // Slide upwards
     }
 
     void Update()
@@ -20,10 +24,14 @@ public class ExitDoor : MonoBehaviour
 
         bool shouldOpen = pressurePlate.activated;
 
-        if (doorRenderer != null)
-            doorRenderer.enabled = !shouldOpen;
+        // Smoothly slide open
+        Vector3 targetPos = shouldOpen ? openPos : closedPos;
+        transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * 6f);
 
+        // Disable collider once door is sufficiently open
         if (doorCollider != null)
-            doorCollider.enabled = !shouldOpen;
+        {
+            doorCollider.enabled = (transform.position.y - closedPos.y) < 1.0f;
+        }
     }
 }

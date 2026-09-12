@@ -12,9 +12,27 @@ public class WinZone : MonoBehaviour
         {
             won = true;
 
-            winScreen.ShowWinScreen();
+            if (winScreen != null)
+            {
+                winScreen.ShowWinScreen();
+            }
 
-            Debug.Log("LEVEL 1 COMPLETE!");
+            Debug.Log("LEVEL 2 COMPLETE! YOU WON!");
+        }
+    }
+
+    private void OnGUI()
+    {
+        if (won && winScreen == null)
+        {
+            GUIStyle style = new GUIStyle(GUI.skin.box);
+            style.fontSize = 32;
+            style.alignment = TextAnchor.MiddleCenter;
+            style.normal.textColor = Color.green;
+
+            float w = 400;
+            float h = 100;
+            GUI.Box(new Rect((Screen.width - w) / 2, (Screen.height - h) / 2, w, h), "LEVEL 2 COMPLETE!\nPUZZLE SOLVED!", style);
         }
     }
 }
