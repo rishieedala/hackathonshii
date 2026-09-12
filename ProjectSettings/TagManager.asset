@@ -3,8 +3,12 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 3
+<<<<<<< HEAD
   tags:
   - Ghost
+=======
+  tags: []
+>>>>>>> c6b339ee700db5b4280ba9cd1e109f3d96484a33
   layers:
   - Default
   - TransparentFX
@@ -12,7 +16,7 @@ TagManager:
   - 
   - Water
   - UI
-  - 
+  - PlayerModel
   - 
   - 
   - 
