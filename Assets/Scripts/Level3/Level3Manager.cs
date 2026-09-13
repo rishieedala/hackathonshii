@@ -240,11 +240,25 @@ public class Level3Manager : MonoBehaviour
 
         for (int i = 0; i < renderers.Length; i++)
         {
-            Material mat = new Material(Shader.Find("Standard"));
-            mat.color = cloneColor;
-            mat.SetColor("_EmissionColor", cloneEmission);
-            mat.EnableKeyword("_EMISSION");
-            renderers[i].material = mat;
+            Material mat = null;
+            if (renderers[i].sharedMaterial != null)
+            {
+                mat = new Material(renderers[i].sharedMaterial);
+            }
+            else
+            {
+                Shader s = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+                if (s != null) mat = new Material(s);
+            }
+
+            if (mat != null)
+            {
+                mat.color = cloneColor;
+                if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", cloneColor);
+                mat.SetColor("_EmissionColor", cloneEmission);
+                mat.EnableKeyword("_EMISSION");
+                renderers[i].material = mat;
+            }
         }
 
         // Add a gentle point light to illuminate the clone

@@ -256,11 +256,25 @@ public class Level3RaceManager : MonoBehaviour
         Color ghostColor = new Color(0f, 0.9f, 1f, 0.85f);
         for (int i = 0; i < rends.Length; i++)
         {
-            Material m = new Material(Shader.Find("Standard"));
-            m.color = ghostColor;
-            m.SetColor("_EmissionColor", ghostColor * 1.6f);
-            m.EnableKeyword("_EMISSION");
-            rends[i].material = m;
+            Material m = null;
+            if (rends[i].sharedMaterial != null)
+            {
+                m = new Material(rends[i].sharedMaterial);
+            }
+            else
+            {
+                Shader s = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+                if (s != null) m = new Material(s);
+            }
+
+            if (m != null)
+            {
+                m.color = ghostColor;
+                if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", ghostColor);
+                m.SetColor("_EmissionColor", ghostColor * 1.6f);
+                m.EnableKeyword("_EMISSION");
+                rends[i].material = m;
+            }
         }
 
         // Add subtle, elegant Ghost Trail
@@ -270,9 +284,27 @@ public class Level3RaceManager : MonoBehaviour
         trail.startWidth = 0.45f;
         trail.endWidth = 0.05f;
         trail.autodestruct = false;
-        Material trailMat = new Material(Shader.Find("Sprites/Default"));
-        trailMat.color = new Color(0f, 0.95f, 1f, 0.45f);
-        trail.material = trailMat;
+
+        Shader trailShader = Shader.Find("Universal Render Pipeline/Unlit")
+                          ?? Shader.Find("Universal Render Pipeline/Particles/Unlit")
+                          ?? Shader.Find("Sprites/Default");
+        Material trailMat = null;
+        if (trailShader != null)
+        {
+            trailMat = new Material(trailShader);
+        }
+        else if (rends.Length > 0 && rends[0].sharedMaterial != null)
+        {
+            trailMat = new Material(rends[0].sharedMaterial);
+        }
+
+        if (trailMat != null)
+        {
+            Color trailCol = new Color(0f, 0.95f, 1f, 0.45f);
+            trailMat.color = trailCol;
+            if (trailMat.HasProperty("_BaseColor")) trailMat.SetColor("_BaseColor", trailCol);
+            trail.material = trailMat;
+        }
     }
 
     private void TeleportPlayerToRaceStart()
