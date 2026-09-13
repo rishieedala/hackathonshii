@@ -10,12 +10,23 @@ public class TimerUI : MonoBehaviour
     void Start()
     {
         timerText = GetComponent<TextMeshProUGUI>();
+        if (loopManager == null)
+        {
+            loopManager = LoopManager.Instance != null ? LoopManager.Instance : FindAnyObjectByType<LoopManager>();
+        }
     }
 
     void Update()
     {
-        float timeLeft = loopManager.GetTimeLeft();
+        if (loopManager == null)
+        {
+            loopManager = LoopManager.Instance != null ? LoopManager.Instance : FindAnyObjectByType<LoopManager>();
+        }
 
-        timerText.text = Mathf.Ceil(timeLeft).ToString();
+        if (timerText != null && loopManager != null)
+        {
+            float timeLeft = loopManager.GetTimeLeft();
+            timerText.text = Mathf.Max(0, Mathf.Ceil(timeLeft)).ToString();
+        }
     }
 }

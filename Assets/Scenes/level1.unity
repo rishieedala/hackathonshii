@@ -1254,6 +1254,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Exitdoor
   pressurePlate: {fileID: 1188251202}
+  openHeight: 3.8
+  slideSpeed: 6
 --- !u!1 &937645629
 GameObject:
   m_ObjectHideFlags: 0
@@ -1739,6 +1741,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PressurePlate
   activated: 0
+  stayActivated: 1
+  normalColor: {r: 0.7, g: 0.9, b: 0.9, a: 1}
+  activeColor: {r: 0.2, g: 1, b: 0.3, a: 1}
 --- !u!1 &1211275159
 GameObject:
   m_ObjectHideFlags: 0
@@ -2313,6 +2318,12 @@ MonoBehaviour:
   loopDuration: 10
   player: {fileID: 2057468594}
   ghostPrefab: {fileID: 2176730554350275814, guid: 05567c304e613480c93cb446a9904ac4, type: 3}
+  cloneSpawner: {fileID: 0}
+  recorder: {fileID: 0}
+  playerDeath: {fileID: 0}
+  startPoint: {fileID: 0}
+  deathResetDelay: 1.2
+  completedLoops: []
 --- !u!114 &1564394961
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3458,7 +3469,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2057468589}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: -0, w: -0.7071068}
   m_LocalPosition: {x: -5, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -3466,7 +3477,7 @@ Transform:
   - {fileID: 1679040331}
   - {fileID: 988693282}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 270, z: 0}
 --- !u!114 &2057468595
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3480,6 +3491,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   moveSpeed: 5
+  sprintMultiplier: 1.4
+  jumpHeight: 1.5
+  gravity: -9.81
+  mouseSensitivity: 200
 --- !u!1 &2107413957
 GameObject:
   m_ObjectHideFlags: 0
