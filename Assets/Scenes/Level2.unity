@@ -862,7 +862,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LoopTrigger
   cloneSpawner: {fileID: 36820614}
-  loopManager: {fileID: 0}
 --- !u!1 &962015302
 GameObject:
   m_ObjectHideFlags: 0
@@ -1504,7 +1503,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 765c29011080f4fc7bd0caf80adb8ccc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MouseLook
-  mouseSensitivity: 1000
+  mouseSensitivity: 200
 --- !u!114 &1535164230
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4210,7 +4209,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PressurePlate
   activated: 0
-  stayActivated: 1
   normalColor: {r: 0.7, g: 0.9, b: 0.9, a: 1}
   activeColor: {r: 0.2, g: 1, b: 0.3, a: 1}
 --- !u!1 &2200000210
@@ -4678,6 +4676,7 @@ MonoBehaviour:
   pressurePlate: {fileID: 2200000206}
   openHeight: 3.8
   slideSpeed: 6
+  clearanceHeight: 1.8
 --- !u!114 &2200000246
 MonoBehaviour:
   m_ObjectHideFlags: 0
