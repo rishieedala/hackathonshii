@@ -22,7 +22,7 @@ public class TimerUI : MonoBehaviour
 
     void Update()
     {
-        // Lazy re-find if both are null (scene just loaded)
+        // Lazy re-find if managers are null (scene just loaded)
         if (loopManager1 == null && loopManager2 == null)
             FindManagers();
 

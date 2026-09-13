@@ -13,6 +13,8 @@ public class CloneReplay : MonoBehaviour
     public Transform rightLeg;
     public float swingSpeed = 8f;
     public float swingAngle = 30f;
+    [Header("Behavior")]
+    public bool holdFinalPosition = false;
 
     private float replayTime = 0f;
     private bool isReplaying = false;
@@ -94,9 +96,14 @@ public class CloneReplay : MonoBehaviour
 
         if (replayTime >= totalTime)
         {
-            // Clone reached the end of the recording (where player died on laser)
+            // Clone reached the end of the recording
             transform.position = frames[frames.Count - 1].position;
             transform.rotation = frames[frames.Count - 1].rotation;
+            if (holdFinalPosition)
+            {
+                AnimateLimbs(0f);
+                return;
+            }
             Die();
             return;
         }

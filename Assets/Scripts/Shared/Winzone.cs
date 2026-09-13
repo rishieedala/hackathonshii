@@ -48,13 +48,21 @@ public class WinZone : MonoBehaviour
             {
                 GoToLevel1();
             }
+            else if (Input.GetKeyDown(KeyCode.Alpha2))
+            {
+                GoToLevel2();
+            }
+            else if (Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Keypad3))
+            {
+                GoToLevel3();
+            }
         }
     }
 
     private void ReplayLevel()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene("Level2");
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     private void GoToLevel1()
@@ -63,13 +71,28 @@ public class WinZone : MonoBehaviour
         SceneManager.LoadScene("level1");
     }
 
+    private void GoToLevel2()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("Level2");
+    }
+
+    private void GoToLevel3()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("Level3");
+    }
+
     private void OnGUI()
     {
         if (won && (winScreen == null || winScreen.winPanel == null))
         {
+            string currentScene = SceneManager.GetActiveScene().name;
+            bool isLevel3 = currentScene.Equals("Level3", System.StringComparison.OrdinalIgnoreCase);
+
             // Center modal container
-            float w = 500;
-            float h = 260;
+            float w = 520;
+            float h = 320;
             float x = (Screen.width - w) / 2;
             float y = (Screen.height - h) / 2;
 
@@ -78,34 +101,69 @@ public class WinZone : MonoBehaviour
 
             // Main Title
             GUIStyle titleStyle = new GUIStyle(GUI.skin.label);
-            titleStyle.fontSize = 32;
+            titleStyle.fontSize = 30;
             titleStyle.fontStyle = FontStyle.Bold;
             titleStyle.alignment = TextAnchor.MiddleCenter;
             titleStyle.normal.textColor = new Color(0.2f, 1f, 0.4f);
-            GUI.Label(new Rect(x, y + 20, w, 45), "LEVEL 2 COMPLETE!", titleStyle);
+            GUI.Label(new Rect(x, y + 15, w, 40), isLevel3 ? "LEVEL 3 COMPLETE!" : "LEVEL 2 COMPLETE!", titleStyle);
 
             // Subtitle
             GUIStyle subStyle = new GUIStyle(GUI.skin.label);
-            subStyle.fontSize = 18;
+            subStyle.fontSize = 16;
             subStyle.alignment = TextAnchor.MiddleCenter;
             subStyle.normal.textColor = Color.white;
-            GUI.Label(new Rect(x, y + 65, w, 30), "PUZZLE SOLVED - YOU CONQUERED THE TIME LOOP!", subStyle);
+            GUI.Label(new Rect(x, y + 55, w, 28), isLevel3 ? "CLONE TEAMWORK MASTERED!" : "PUZZLE SOLVED - TIME LOOP CONQUERED!", subStyle);
 
             // Button styling
             GUIStyle btnStyle = new GUIStyle(GUI.skin.button);
-            btnStyle.fontSize = 16;
+            btnStyle.fontSize = 15;
             btnStyle.fontStyle = FontStyle.Bold;
 
-            // Replay Button
-            if (GUI.Button(new Rect(x + 50, y + 120, w - 100, 45), "Play Level 2 Again (Enter / Space)", btnStyle))
+            if (isLevel3)
             {
-                ReplayLevel();
-            }
+                // Play Level 3 Again
+                GUIStyle primaryBtn = new GUIStyle(GUI.skin.button);
+                primaryBtn.fontSize = 16;
+                primaryBtn.fontStyle = FontStyle.Bold;
+                primaryBtn.normal.textColor = Color.yellow;
+                if (GUI.Button(new Rect(x + 50, y + 95, w - 100, 45), "Play Level 3 Again (Enter / Space)", primaryBtn))
+                {
+                    ReplayLevel();
+                }
 
-            // Level 1 Button
-            if (GUI.Button(new Rect(x + 50, y + 180, w - 100, 45), "Return to Level 1 (Press 1)", btnStyle))
+                // Return to Level 2
+                if (GUI.Button(new Rect(x + 50, y + 155, w - 100, 45), "Return to Level 2 (Press 2)", btnStyle))
+                {
+                    GoToLevel2();
+                }
+
+                // Return to Level 1
+                if (GUI.Button(new Rect(x + 50, y + 215, w - 100, 45), "Return to Level 1 (Press 1)", btnStyle))
+                {
+                    GoToLevel1();
+                }
+            }
+            else
             {
-                GoToLevel1();
+                // Level 2 default view
+                GUIStyle advBtnStyle = new GUIStyle(GUI.skin.button);
+                advBtnStyle.fontSize = 16;
+                advBtnStyle.fontStyle = FontStyle.Bold;
+                advBtnStyle.normal.textColor = Color.yellow;
+                if (GUI.Button(new Rect(x + 50, y + 95, w - 100, 45), "Advance to Level 3 (Press 3)", advBtnStyle))
+                {
+                    GoToLevel3();
+                }
+
+                if (GUI.Button(new Rect(x + 50, y + 155, w - 100, 45), "Play Level 2 Again (Enter / Space)", btnStyle))
+                {
+                    ReplayLevel();
+                }
+
+                if (GUI.Button(new Rect(x + 50, y + 215, w - 100, 45), "Return to Level 1 (Press 1)", btnStyle))
+                {
+                    GoToLevel1();
+                }
             }
         }
     }

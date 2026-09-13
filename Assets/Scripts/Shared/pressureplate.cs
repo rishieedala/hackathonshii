@@ -58,35 +58,39 @@ public class PressurePlate : MonoBehaviour
         cachedClones = FindObjectsByType<CloneReplay>(FindObjectsInactive.Exclude);
     }
 
+    private float nextCacheRefreshTime = 0f;
+
     private bool CheckSpatialOverlap()
     {
         Vector3 platePos = transform.position;
         if (cachedPlayer == null) cachedPlayer = GameObject.FindWithTag("Player");
         if (cachedPlayer != null && IsWithinPlateBounds(cachedPlayer.transform.position, platePos)) return true;
-        bool needGhostRefresh = false;
-        foreach (var g in cachedGhosts)
+
+        if (Time.time >= nextCacheRefreshTime || cachedClones == null || cachedClones.Length == 0)
         {
-            if (g == null) { needGhostRefresh = true; break; }
-            if (IsWithinPlateBounds(g.transform.position, platePos)) return true;
-        }
-        if (needGhostRefresh)
-        {
+            nextCacheRefreshTime = Time.time + 0.2f;
             cachedGhosts = FindObjectsByType<GhostReplay>(FindObjectsInactive.Exclude);
-            foreach (var g in cachedGhosts)
-                if (g != null && IsWithinPlateBounds(g.transform.position, platePos)) return true;
-        }
-        bool needCloneRefresh = false;
-        foreach (var c in cachedClones)
-        {
-            if (c == null) { needCloneRefresh = true; break; }
-            if (IsWithinPlateBounds(c.transform.position, platePos)) return true;
-        }
-        if (needCloneRefresh)
-        {
             cachedClones = FindObjectsByType<CloneReplay>(FindObjectsInactive.Exclude);
-            foreach (var c in cachedClones)
-                if (c != null && IsWithinPlateBounds(c.transform.position, platePos)) return true;
         }
+
+        if (cachedGhosts != null)
+        {
+            for (int i = 0; i < cachedGhosts.Length; i++)
+            {
+                var g = cachedGhosts[i];
+                if (g != null && IsWithinPlateBounds(g.transform.position, platePos)) return true;
+            }
+        }
+
+        if (cachedClones != null)
+        {
+            for (int i = 0; i < cachedClones.Length; i++)
+            {
+                var c = cachedClones[i];
+                if (c != null && IsWithinPlateBounds(c.transform.position, platePos)) return true;
+            }
+        }
+
         // Corpses (Level 2) — guard against "Corpse" tag not existing in Tag Manager
         if (corpseTagExists != false)
         {
@@ -109,7 +113,7 @@ public class PressurePlate : MonoBehaviour
     private bool IsWithinPlateBounds(Vector3 entityPos, Vector3 platePos)
     {
         Vector3 diff = entityPos - platePos;
-        return (Mathf.Abs(diff.x) < 1.3f && Mathf.Abs(diff.z) < 1.3f && diff.y >= -0.3f && diff.y < 2.2f);
+        return (Mathf.Abs(diff.x) < 1.6f && Mathf.Abs(diff.z) < 1.6f && diff.y >= -0.5f && diff.y < 2.5f);
     }
 
     private void UpdateVisuals(bool isActive)

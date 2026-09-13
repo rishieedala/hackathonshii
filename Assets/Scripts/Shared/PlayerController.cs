@@ -179,15 +179,9 @@ public class PlayerController : MonoBehaviour
         // Subtle reticle crosshair in the center of the screen for precision platforming
         float cx = Screen.width / 2f;
         float cy = Screen.height / 2f;
-        int size = 3;
-        GUI.color = new Color(1f, 1f, 1f, 0.7f);
+        int size = 2;
+        GUI.color = new Color(1f, 1f, 1f, 0.6f);
         GUI.DrawTexture(new Rect(cx - size, cy - size, size * 2, size * 2), Texture2D.whiteTexture);
-
-        // Control hint in bottom-left corner
-        GUIStyle hintStyle = new GUIStyle(GUI.skin.label);
-        hintStyle.fontSize = 13;
-        hintStyle.normal.textColor = new Color(1f, 1f, 1f, 0.5f);
-        GUI.Label(new Rect(20, Screen.height - 35, 300, 25), "[WASD] Move   [Shift] Sprint   [Space] Jump", hintStyle);
     }
 }
 
