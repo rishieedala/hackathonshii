@@ -19,7 +19,7 @@ public class GhostReplay : MonoBehaviour
     void Awake()
     {
         gameObject.tag = "Ghost";
-        SetLayerRecursively(gameObject, 0); // Ensure ghost is on Default layer (0) so it is visible
+        SetLayerRecursively(gameObject, 0); // Ensure ghost is on Default layer so it is visible
 
         rb = GetComponent<Rigidbody>();
         if (rb == null)

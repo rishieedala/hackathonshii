@@ -61,11 +61,11 @@ public class PlayerDeath : MonoBehaviour
 
         Debug.Log("PLAYER DIED - CORPSE LEFT BEHIND");
 
-        // Notify LoopManager to schedule loop restart
-        LoopManager loopManager = FindAnyObjectByType<LoopManager>();
-        if (loopManager != null)
+        // Notify LoopManager2 to schedule loop restart (Level 2 only)
+        LoopManager2 loopManager2 = LoopManager2.Instance ?? FindAnyObjectByType<LoopManager2>();
+        if (loopManager2 != null)
         {
-            loopManager.OnPlayerDeath();
+            loopManager2.OnPlayerDeath();
         }
     }
 

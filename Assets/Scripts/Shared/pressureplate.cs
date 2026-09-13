@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PressurePlate : MonoBehaviour
@@ -9,12 +9,15 @@ public class PressurePlate : MonoBehaviour
     public Color normalColor = new Color(0.3f, 0.8f, 0.9f);
     public Color activeColor  = new Color(0.2f, 1f,   0.3f);
 
-    private Vector3   initialLocalPos;
-    private Renderer  plateRenderer;
-    private Material  plateMaterial;
+    private Vector3      initialLocalPos;
+    private Renderer     plateRenderer;
+    private Material     plateMaterial;
     private GameObject   cachedPlayer;
     private GhostReplay[] cachedGhosts = new GhostReplay[0];
     private CloneReplay[] cachedClones = new CloneReplay[0];
+
+    // Cached once to avoid per-frame UnityException when "Corpse" tag is not defined in Tag Manager
+    private static bool? corpseTagExists = null;
 
     void Start()
     {
@@ -84,9 +87,22 @@ public class PressurePlate : MonoBehaviour
             foreach (var c in cachedClones)
                 if (c != null && IsWithinPlateBounds(c.transform.position, platePos)) return true;
         }
-        GameObject[] corpses = GameObject.FindGameObjectsWithTag("Corpse");
-        foreach (var corpse in corpses)
-            if (corpse != null && IsWithinPlateBounds(corpse.transform.position, platePos)) return true;
+        // Corpses (Level 2) — guard against "Corpse" tag not existing in Tag Manager
+        if (corpseTagExists != false)
+        {
+            try
+            {
+                GameObject[] corpses = GameObject.FindGameObjectsWithTag("Corpse");
+                corpseTagExists = true;
+                foreach (var corpse in corpses)
+                    if (corpse != null && IsWithinPlateBounds(corpse.transform.position, platePos)) return true;
+            }
+            catch (UnityException)
+            {
+                // Tag not defined in this project — disable corpse checks permanently
+                corpseTagExists = false;
+            }
+        }
         return false;
     }
 
