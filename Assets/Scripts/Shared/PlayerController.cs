@@ -155,7 +155,13 @@ public class PlayerController : MonoBehaviour
         }
         else if (LoopManager.Instance != null)
         {
+            // Level 1
             LoopManager.Instance.ResetLoop();
+        }
+        else if (LoopManager2.Instance != null)
+        {
+            // Level 2
+            LoopManager2.Instance.ResetLoop();
         }
     }
 
