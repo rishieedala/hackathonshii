@@ -24,6 +24,18 @@ public class CloneReplay : MonoBehaviour
     {
         SetLayerRecursively(gameObject, 0); // Ensure Default layer (0) so clone is visible
         AutoFindLimbs();
+
+        // Clone moves purely via recorded positions — physics must not fight the assignments.
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.isKinematic = true;
+            rb.useGravity  = false;
+        }
+
+        // CharacterController would clamp movement; disable it for the clone.
+        CharacterController cc = GetComponent<CharacterController>();
+        if (cc != null) cc.enabled = false;
     }
 
     private void AutoFindLimbs()

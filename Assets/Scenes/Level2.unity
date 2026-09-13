@@ -2236,6 +2236,7 @@ GameObject:
   - component: {fileID: 2100000004}
   - component: {fileID: 2100000005}
   - component: {fileID: 2100000006}
+  - component: {fileID: 2100000007}
   m_Layer: 0
   m_Name: Winzone
   m_TagString: Untagged
@@ -2291,7 +2292,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c234061885fd4062b54a8f42d70fe5e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WinZone
-  winScreen: {fileID: 0}
+  winScreen: {fileID: 2100000007}
 --- !u!33 &2100000005
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -2349,6 +2350,19 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &2100000007
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2100000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b92b64ac6cf8a4bb58f17f027c2524c9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WinScreen
+  winPanel: {fileID: 0}
 --- !u!1 &2200000010
 GameObject:
   m_ObjectHideFlags: 0
@@ -4548,6 +4562,7 @@ GameObject:
   - component: {fileID: 2200000242}
   - component: {fileID: 2200000244}
   - component: {fileID: 2200000245}
+  - component: {fileID: 2200000246}
   m_Layer: 0
   m_Name: ExitDoor
   m_TagString: Untagged
@@ -4655,7 +4670,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2200000240}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7ea238632c91d4d7c89c65489270bbac, type: 3}
   m_Name: 
@@ -4663,6 +4678,22 @@ MonoBehaviour:
   pressurePlate: {fileID: 2200000206}
   openHeight: 3.8
   slideSpeed: 6
+--- !u!114 &2200000246
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2200000240}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3c4d5e6789012345678901234abc012, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PermanentDoor
+  openHeight: 3.8
+  slideSpeed: 6
+  clearanceHeight: 1.8
+  pressurePlate: {fileID: 2200000206}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

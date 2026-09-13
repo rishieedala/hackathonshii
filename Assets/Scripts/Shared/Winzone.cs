@@ -38,7 +38,7 @@ public class WinZone : MonoBehaviour
 
     void Update()
     {
-        if (won && winScreen == null)
+        if (won && (winScreen == null || winScreen.winPanel == null))
         {
             if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.R))
             {
@@ -65,7 +65,7 @@ public class WinZone : MonoBehaviour
 
     private void OnGUI()
     {
-        if (won && winScreen == null)
+        if (won && (winScreen == null || winScreen.winPanel == null))
         {
             // Center modal container
             float w = 500;

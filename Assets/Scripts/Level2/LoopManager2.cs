@@ -83,6 +83,10 @@ public class LoopManager2 : MonoBehaviour
     {
         Debug.Log("LoopManager2 (Level 2): RESET");
 
+        // Reset the permanent door (Level 2 puzzle door) back to closed
+        PermanentDoor permanentDoor = FindAnyObjectByType<PermanentDoor>();
+        if (permanentDoor != null) permanentDoor.ResetDoor();
+
         List<ReplayRecorder.Frame> recordedFrames = null;
         if (recorder != null) recordedFrames = recorder.GetFramesCopy();
 
