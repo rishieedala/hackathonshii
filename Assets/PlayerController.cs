@@ -159,39 +159,10 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void OnControllerColliderHit(ControllerColliderHit hit)
-    {
-        if (hit.gameObject != null)
-        {
-            PressurePlate plate = hit.gameObject.GetComponent<PressurePlate>();
-            if (plate == null)
-            {
-                plate = hit.gameObject.GetComponentInParent<PressurePlate>();
-            }
+    // Plate detection is now purely spatial (PressurePlate.Update checks positions every frame).
+    // No collision callbacks needed.
 
-            if (plate != null)
-            {
-                plate.TriggerPlate();
-            }
-        }
-    }
 
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject != null)
-        {
-            PressurePlate plate = collision.gameObject.GetComponent<PressurePlate>();
-            if (plate == null)
-            {
-                plate = collision.gameObject.GetComponentInParent<PressurePlate>();
-            }
-
-            if (plate != null)
-            {
-                plate.TriggerPlate();
-            }
-        }
-    }
 
     private void OnGUI()
     {
@@ -210,7 +181,7 @@ public class PlayerController : MonoBehaviour
         GUIStyle hintStyle = new GUIStyle(GUI.skin.label);
         hintStyle.fontSize = 13;
         hintStyle.normal.textColor = new Color(1f, 1f, 1f, 0.5f);
-        GUI.Label(new Rect(20, Screen.height - 35, 300, 25), "[WASD] Move   [Shift] Sprint   [Space] Jump   [R] Loop Reset", hintStyle);
+        GUI.Label(new Rect(20, Screen.height - 35, 300, 25), "[WASD] Move   [Shift] Sprint   [Space] Jump", hintStyle);
     }
 }
 

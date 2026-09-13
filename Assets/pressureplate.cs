@@ -1,196 +1,109 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class PressurePlate : MonoBehaviour
 {
     public bool activated = false;
-    public bool stayActivated = true;
 
     [Header("Visual Feedback")]
     public Color normalColor = new Color(0.3f, 0.8f, 0.9f);
-    public Color activeColor = new Color(0.2f, 1f, 0.3f);
+    public Color activeColor  = new Color(0.2f, 1f,   0.3f);
 
-    private readonly HashSet<Collider> occupants = new HashSet<Collider>();
-    private Vector3 initialLocalPos;
-    private Renderer plateRenderer;
-    private Material plateMaterial;
-    private GameObject cachedPlayer;
+    private Vector3   initialLocalPos;
+    private Renderer  plateRenderer;
+    private Material  plateMaterial;
+    private GameObject   cachedPlayer;
+    private GhostReplay[] cachedGhosts = new GhostReplay[0];
+    private CloneReplay[] cachedClones = new CloneReplay[0];
 
     void Start()
     {
         initialLocalPos = transform.localPosition;
         plateRenderer = GetComponent<Renderer>();
-        if (plateRenderer != null)
-        {
-            plateMaterial = plateRenderer.material;
-        }
-
+        if (plateRenderer != null) plateMaterial = plateRenderer.material;
         cachedPlayer = GameObject.FindWithTag("Player");
+        RefreshEntityCaches();
         UpdateVisuals(false);
     }
 
-    public void TriggerPlate()
+    void Update()
     {
-        if (!activated)
+        bool someoneOnPlate = CheckSpatialOverlap();
+        if (someoneOnPlate != activated)
         {
-            activated = true;
-            UpdateVisuals(true);
-            Debug.Log("PRESSURE PLATE ACTIVATED! BLAST DOOR UNLOCKED!");
-
-            ExitDoor door = FindAnyObjectByType<ExitDoor>();
-            if (door != null)
-            {
-                door.OpenDoor();
-            }
+            activated = someoneOnPlate;
+            UpdateVisuals(activated);
+            Debug.Log(activated ? "PressurePlate: ACTIVATED" : "PressurePlate: DEACTIVATED");
         }
+        Vector3 targetLocalPos = initialLocalPos + (activated ? new Vector3(0, -0.07f, 0) : Vector3.zero);
+        transform.localPosition = Vector3.Lerp(transform.localPosition, targetLocalPos, Time.deltaTime * 12f);
     }
 
     public void ResetPlate()
     {
         activated = false;
-        occupants.Clear();
         UpdateVisuals(false);
+        transform.localPosition = initialLocalPos;
+        RefreshEntityCaches();
+        Debug.Log("PressurePlate: Reset");
     }
 
-    void OnTriggerEnter(Collider other)
+    public void RefreshEntityCaches()
     {
-        if (IsTriggerEntity(other))
-        {
-            occupants.Add(other);
-            TriggerPlate();
-        }
+        if (cachedPlayer == null) cachedPlayer = GameObject.FindWithTag("Player");
+        cachedGhosts = FindObjectsByType<GhostReplay>(FindObjectsInactive.Exclude);
+        cachedClones = FindObjectsByType<CloneReplay>(FindObjectsInactive.Exclude);
     }
-
-    void OnTriggerStay(Collider other)
-    {
-        if (IsTriggerEntity(other) && !activated)
-        {
-            TriggerPlate();
-        }
-    }
-
-    void OnTriggerExit(Collider other)
-    {
-        if (IsTriggerEntity(other))
-        {
-            occupants.Remove(other);
-            if (!stayActivated)
-            {
-                CheckOccupancy();
-            }
-        }
-    }
-
-    void Update()
-    {
-        // Robust spatial check: detects Player, Ghost, Clone, or Corpse on top of the plate
-        bool someoneOnPlate = CheckSpatialOverlap();
-
-        if (someoneOnPlate)
-        {
-            TriggerPlate();
-        }
-        else if (!stayActivated)
-        {
-            if (activated)
-            {
-                activated = false;
-                occupants.Clear();
-                UpdateVisuals(false);
-            }
-        }
-
-        // Smoothly sink down when activated
-        Vector3 targetPos = initialLocalPos + (activated ? new Vector3(0, -0.07f, 0) : Vector3.zero);
-        transform.localPosition = Vector3.Lerp(transform.localPosition, targetPos, Time.deltaTime * 12f);
-    }
-
-    private void CheckOccupancy()
-    {
-        if (!CheckSpatialOverlap())
-        {
-            activated = false;
-            occupants.Clear();
-            UpdateVisuals(false);
-        }
-    }
-
 
     private bool CheckSpatialOverlap()
     {
         Vector3 platePos = transform.position;
-
-        // Check living player
-        if (cachedPlayer == null)
+        if (cachedPlayer == null) cachedPlayer = GameObject.FindWithTag("Player");
+        if (cachedPlayer != null && IsWithinPlateBounds(cachedPlayer.transform.position, platePos)) return true;
+        bool needGhostRefresh = false;
+        foreach (var g in cachedGhosts)
         {
-            cachedPlayer = GameObject.FindWithTag("Player");
+            if (g == null) { needGhostRefresh = true; break; }
+            if (IsWithinPlateBounds(g.transform.position, platePos)) return true;
         }
-
-        if (cachedPlayer != null && IsWithinPlateBounds(cachedPlayer.transform.position, platePos))
+        if (needGhostRefresh)
         {
-            return true;
+            cachedGhosts = FindObjectsByType<GhostReplay>(FindObjectsInactive.Exclude);
+            foreach (var g in cachedGhosts)
+                if (g != null && IsWithinPlateBounds(g.transform.position, platePos)) return true;
         }
-
-        // Check any active Ghost (Level 1)
-        GhostReplay[] ghosts = FindObjectsByType<GhostReplay>(FindObjectsInactive.Exclude);
-        foreach (var g in ghosts)
+        bool needCloneRefresh = false;
+        foreach (var c in cachedClones)
         {
-            if (g != null && IsWithinPlateBounds(g.transform.position, platePos))
-            {
-                return true;
-            }
+            if (c == null) { needCloneRefresh = true; break; }
+            if (IsWithinPlateBounds(c.transform.position, platePos)) return true;
         }
-
-        // Check any active Clone (Level 2)
-        CloneReplay[] clones = FindObjectsByType<CloneReplay>(FindObjectsInactive.Exclude);
-        foreach (var c in clones)
+        if (needCloneRefresh)
         {
-            if (c != null && IsWithinPlateBounds(c.transform.position, platePos))
-            {
-                return true;
-            }
+            cachedClones = FindObjectsByType<CloneReplay>(FindObjectsInactive.Exclude);
+            foreach (var c in cachedClones)
+                if (c != null && IsWithinPlateBounds(c.transform.position, platePos)) return true;
         }
-
-        // Check any Corpse (Level 2)
         GameObject[] corpses = GameObject.FindGameObjectsWithTag("Corpse");
         foreach (var corpse in corpses)
-        {
-            if (corpse != null && IsWithinPlateBounds(corpse.transform.position, platePos))
-            {
-                return true;
-            }
-        }
-
+            if (corpse != null && IsWithinPlateBounds(corpse.transform.position, platePos)) return true;
         return false;
     }
 
     private bool IsWithinPlateBounds(Vector3 entityPos, Vector3 platePos)
     {
         Vector3 diff = entityPos - platePos;
-        // Check horizontal radius (within 1.3m) and vertical standing height (from slightly below plate surface to 2.2m above)
         return (Mathf.Abs(diff.x) < 1.3f && Mathf.Abs(diff.z) < 1.3f && diff.y >= -0.3f && diff.y < 2.2f);
     }
 
     private void UpdateVisuals(bool isActive)
     {
-        if (plateMaterial != null)
+        if (plateMaterial == null) return;
+        plateMaterial.color = isActive ? activeColor : normalColor;
+        if (plateMaterial.HasProperty("_EmissionColor"))
         {
-            plateMaterial.color = isActive ? activeColor : normalColor;
-            if (plateMaterial.HasProperty("_EmissionColor"))
-            {
-                plateMaterial.EnableKeyword("_EMISSION");
-                plateMaterial.SetColor("_EmissionColor", isActive ? activeColor * 3.5f : normalColor * 0.5f);
-            }
+            plateMaterial.EnableKeyword("_EMISSION");
+            plateMaterial.SetColor("_EmissionColor", isActive ? activeColor * 3.5f : normalColor * 0.5f);
         }
     }
-
-    private bool IsTriggerEntity(Collider col)
-    {
-        if (col == null) return false;
-        if (col.CompareTag("Player") || col.CompareTag("Ghost") || col.CompareTag("Clone") || col.CompareTag("Corpse")) return true;
-        if (col.attachedRigidbody != null && (col.attachedRigidbody.CompareTag("Player") || col.attachedRigidbody.CompareTag("Ghost") || col.attachedRigidbody.CompareTag("Clone") || col.attachedRigidbody.CompareTag("Corpse"))) return true;
-        if (col.transform.root != null && (col.transform.root.CompareTag("Player") || col.transform.root.CompareTag("Ghost") || col.transform.root.CompareTag("Clone") || col.transform.root.CompareTag("Corpse"))) return true;
-        return false;
-    }
 }
-

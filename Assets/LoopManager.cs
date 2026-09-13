@@ -22,10 +22,15 @@ public class LoopManager : MonoBehaviour
     private Vector3 startPosition;
     private Quaternion startRotation;
 
-    // Level 1 data
+    // Level 1 recording for the current loop
     private LoopRecording currentRecording;
-    public List<LoopRecording> completedLoops = new List<LoopRecording>();
 
+    // Only ONE ghost is allowed in Level 1.
+    // Always represents the immediately previous loop.
+    private GameObject currentGhost;
+
+    // Shared re-entry guard. Prevents ResetLoop() from being called twice
+    // on the same frame (e.g. timer hits 0 across two consecutive frames).
     private bool isResetting = false;
 
     private void Awake()
@@ -77,27 +82,25 @@ public class LoopManager : MonoBehaviour
 
     private void Update()
     {
-        // Support manual loop restart with R key
-        if (Input.GetKeyDown(KeyCode.R) && !isResetting)
-        {
-            ResetLoop();
-            return;
-        }
-
-        // Level 1 Ghost Mode (timer-based loop)
+        // ── LEVEL 1: Ghost Replay Mode ──────────────────────────────────────
         if (ghostPrefab != null)
         {
-            timer -= Time.deltaTime;
-            RecordPlayerGhost();
-
-            if (timer <= 0f)
+            if (!isResetting)
             {
-                ResetLoop();
+                timer -= Time.deltaTime;
+
+                // Record every frame while the loop is running
+                RecordPlayerGhost();
+
+                if (timer <= 0f)
+                {
+                    ResetLoop();
+                }
             }
         }
     }
 
-    // Called when the player dies (Level 2)
+    // ── Level 2: Called when the player dies ────────────────────────────────
     public void OnPlayerDeath()
     {
         if (isResetting)
@@ -121,37 +124,67 @@ public class LoopManager : MonoBehaviour
 
     public void ResetLoop()
     {
-        Debug.Log("RESETTING LOOP");
-
-        // LEVEL 1: Ghost Replay Mode
+        // ── LEVEL 1: Ghost Replay Mode ──────────────────────────────────────
         if (ghostPrefab != null)
         {
-            completedLoops.Add(currentRecording);
+            if (isResetting)
+                return;
 
-            GameObject ghostObject = Instantiate(ghostPrefab, startPosition, startRotation);
-            ghostObject.tag = "Ghost";
+            isResetting = true;
 
-            GhostReplay ghost = ghostObject.GetComponent<GhostReplay>();
-            if (ghost != null)
+            Debug.Log("LoopManager: LEVEL 1 RESET");
+
+            // ── 1. Snap timer to exactly 0 so Update skips recording ────────
+            timer = 0f;
+
+            // ── 2. Destroy the OLD ghost (previous loop's ghost) ────────────
+            if (currentGhost != null)
             {
-                ghost.SetRecording(currentRecording);
+                Destroy(currentGhost);
+                currentGhost = null;
             }
 
-            GhostReplay[] allGhosts = FindObjectsByType<GhostReplay>(FindObjectsInactive.Exclude);
-            foreach (var g in allGhosts)
+            // ── 3. Reset all pressure plates to inactive ────────────────────
+            PressurePlate[] plates = FindObjectsByType<PressurePlate>(FindObjectsInactive.Exclude);
+            foreach (var plate in plates)
             {
-                if (g != null)
+                if (plate != null)
                 {
-                    g.ResetReplay();
+                    plate.ResetPlate();
                 }
             }
 
-            // Reset player position and velocities
+            // ── 4. Spawn the NEW ghost from ONLY the recording that just finished
+            if (currentRecording != null && currentRecording.frames.Count > 0)
+            {
+                currentGhost = Instantiate(
+                    ghostPrefab,
+                    startPosition,
+                    startRotation
+                );
+
+                currentGhost.tag = "Ghost";
+
+                GhostReplay ghost = currentGhost.GetComponent<GhostReplay>();
+
+                if (ghost != null)
+                {
+                    ghost.SetRecording(currentRecording);
+                    ghost.ResetReplay();
+                }
+                else
+                {
+                    Debug.LogWarning("LoopManager: GhostReplay component not found on Ghost prefab!");
+                }
+            }
+
+            // ── 5. The plate's self-healing cache in CheckSpatialOverlap() will
+            //      automatically detect the new ghost on the next Update() frame.
+            //      No explicit cache refresh call needed here.
+
+            // ── 6. Teleport/reset the Player to the starting position ────────
             if (player != null)
             {
-                player.position = startPosition;
-                player.rotation = startRotation;
-
                 PlayerController pc = player.GetComponent<PlayerController>();
                 if (pc != null)
                 {
@@ -161,40 +194,42 @@ public class LoopManager : MonoBehaviour
                 Rigidbody rb = player.GetComponent<Rigidbody>();
                 if (rb != null)
                 {
-                    rb.position = startPosition;
-                    rb.rotation = startRotation;
                     rb.linearVelocity = Vector3.zero;
                     rb.angularVelocity = Vector3.zero;
                 }
 
+                // Disable CharacterController before teleporting to prevent clamping
                 CharacterController cc = player.GetComponent<CharacterController>();
                 if (cc != null)
                 {
                     cc.enabled = false;
-                    player.position = startPosition;
-                    player.rotation = startRotation;
+                }
+
+                player.position = startPosition;
+                player.rotation = startRotation;
+
+                if (cc != null)
+                {
                     cc.enabled = true;
                 }
 
                 Physics.SyncTransforms();
             }
 
-            // In Level 1, reset pressure plate so ghost must reach and step on it in the new loop
-            PressurePlate[] plates = FindObjectsByType<PressurePlate>(FindObjectsInactive.Exclude);
-            foreach (var p in plates)
-            {
-                if (p != null)
-                {
-                    p.ResetPlate();
-                }
-            }
-
+            // ── 7. Clear the old recording and begin a new one ───────────────
             currentRecording = new LoopRecording();
+
+            // ── 8. Restart the 10-second timer ──────────────────────────────
             timer = loopDuration;
-            return;
+
+            isResetting = false;
+
+            Debug.Log("LoopManager: Loop reset complete. One ghost active (previous loop only).");
+
+            return; // ← Do NOT fall through to Level 2 path
         }
 
-        // LEVEL 2: Clone & Corpse Puzzle Mode
+        // ── LEVEL 2: Clone & Corpse Puzzle Mode ─────────────────────────────
         if (cloneSpawner != null || recorder != null)
         {
             List<ReplayRecorder.Frame> recordedFrames = null;
@@ -250,13 +285,19 @@ public class LoopManager : MonoBehaviour
         }
     }
 
+    // ── Private Helpers ─────────────────────────────────────────────────────
 
     private void RecordPlayerGhost()
     {
         if (player == null)
             return;
 
+        // Record elapsed time from start of this loop
         float currentTime = loopDuration - timer;
+
+        if (currentTime < 0f)
+            currentTime = 0f;
+
         PlayerFrame frame = new PlayerFrame(
             currentTime,
             player.position,
