@@ -92,14 +92,11 @@ public class PressurePlate : MonoBehaviour
         }
         else if (!stayActivated)
         {
-            occupants.RemoveWhere(c => c == null || !c.enabled || !c.gameObject.activeInHierarchy);
-            if (occupants.Count == 0)
+            if (activated)
             {
-                if (activated)
-                {
-                    activated = false;
-                    UpdateVisuals(false);
-                }
+                activated = false;
+                occupants.Clear();
+                UpdateVisuals(false);
             }
         }
 
@@ -110,13 +107,14 @@ public class PressurePlate : MonoBehaviour
 
     private void CheckOccupancy()
     {
-        occupants.RemoveWhere(c => c == null || !c.enabled || !c.gameObject.activeInHierarchy);
-        if (occupants.Count == 0 && !CheckSpatialOverlap())
+        if (!CheckSpatialOverlap())
         {
             activated = false;
+            occupants.Clear();
             UpdateVisuals(false);
         }
     }
+
 
     private bool CheckSpatialOverlap()
     {

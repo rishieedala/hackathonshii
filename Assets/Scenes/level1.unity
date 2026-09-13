@@ -1741,7 +1741,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PressurePlate
   activated: 0
-  stayActivated: 1
+  stayActivated: 0
   normalColor: {r: 0.7, g: 0.9, b: 0.9, a: 1}
   activeColor: {r: 0.2, g: 1, b: 0.3, a: 1}
 --- !u!1 &1211275159
@@ -2315,7 +2315,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0965eec892c6345a0a0f1868f8709b02, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LoopManager
-  loopDuration: 10
+  loopDuration: 8
   player: {fileID: 2057468594}
   ghostPrefab: {fileID: 2176730554350275814, guid: 05567c304e613480c93cb446a9904ac4, type: 3}
   cloneSpawner: {fileID: 0}

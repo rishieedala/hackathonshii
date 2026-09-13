@@ -29,7 +29,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3410302446120697685}
@@ -70,6 +70,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d5e71523512245c59900aead5859e9c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GhostReplay
+  leftArm: {fileID: 0}
+  rightArm: {fileID: 0}
+  leftLeg: {fileID: 0}
+  rightLeg: {fileID: 0}
+  swingSpeed: 8
+  swingAngle: 30
 --- !u!54 &-7250491767043845885
 Rigidbody:
   m_ObjectHideFlags: 0
