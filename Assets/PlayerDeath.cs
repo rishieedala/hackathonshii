@@ -18,6 +18,8 @@ public class PlayerDeath : MonoBehaviour
         playerRenderers = GetComponentsInChildren<Renderer>();
     }
 
+    private GameObject currentDeathCorpse;
+
     public void Die()
     {
         if (isDead)
@@ -29,11 +31,11 @@ public class PlayerDeath : MonoBehaviour
         Vector3 deathPosition = transform.position;
         Quaternion deathRotation = transform.rotation;
 
-        // Create the physical corpse
+        // Create the physical corpse for visual feedback during death delay
         if (corpsePrefab != null)
         {
-            GameObject corpse = Instantiate(corpsePrefab, deathPosition, deathRotation);
-            SetLayerRecursively(corpse, 0); // Ensure corpse is on Default layer (0) so it's fully visible to camera
+            currentDeathCorpse = Instantiate(corpsePrefab, deathPosition, deathRotation);
+            SetLayerRecursively(currentDeathCorpse, 0); // Ensure corpse is on Default layer (0) so it's fully visible to camera
         }
 
         // Stop player movement
@@ -70,6 +72,13 @@ public class PlayerDeath : MonoBehaviour
     public void ResetPlayer(Vector3 resetPosition, Quaternion resetRotation)
     {
         isDead = false;
+
+        // Clean up temporary death corpse as the replaying clone will recreate the corpse upon death
+        if (currentDeathCorpse != null)
+        {
+            Destroy(currentDeathCorpse);
+            currentDeathCorpse = null;
+        }
 
         // Temporarily disable CharacterController while updating position to prevent transform clamping
         if (controller != null)

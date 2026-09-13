@@ -3,12 +3,13 @@ using UnityEngine;
 public class ExitDoor : MonoBehaviour
 {
     public PressurePlate pressurePlate;
+    public float openHeight = 3.8f;
+    public float slideSpeed = 6f;
 
     private Renderer doorRenderer;
     private Collider doorCollider;
     private Vector3 closedPos;
     private Vector3 openPos;
-    private bool isOpen = false;
 
     void Start()
     {
@@ -20,33 +21,44 @@ public class ExitDoor : MonoBehaviour
         doorRenderer = GetComponent<Renderer>();
         doorCollider = GetComponent<Collider>();
         closedPos = transform.position;
-        openPos = closedPos + new Vector3(0, 3.8f, 0); // Slide up to ceiling
+        openPos = closedPos + new Vector3(0, openHeight, 0);
+
+        if (doorRenderer != null)
+        {
+            doorRenderer.enabled = true;
+        }
     }
 
     public void OpenDoor()
     {
-        isOpen = true;
-        Debug.Log("EXIT DOOR OPENING!");
+        // Target updated smoothly in Update()
     }
 
     void Update()
     {
-        if (pressurePlate != null && pressurePlate.activated)
+        if (pressurePlate == null)
         {
-            isOpen = true;
+            pressurePlate = FindAnyObjectByType<PressurePlate>();
         }
 
-        // Smoothly slide open
-        Vector3 targetPos = isOpen ? openPos : closedPos;
-        transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * 5f);
+        bool shouldOpen = (pressurePlate != null && pressurePlate.activated);
 
-        // Disable collider once door begins moving open so player won't be blocked
+        // Smooth sliding motion
+        Vector3 targetPos = shouldOpen ? openPos : closedPos;
+        transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * slideSpeed);
+
+        // Door renderer remains visible to showcase the sliding door
+        if (doorRenderer != null && !doorRenderer.enabled)
+        {
+            doorRenderer.enabled = true;
+        }
+
+        // Clear collision once door has slid high enough, re-enable when closing
         if (doorCollider != null)
         {
-            if (isOpen && (transform.position.y - closedPos.y) > 0.5f)
-            {
-                doorCollider.enabled = false;
-            }
+            bool hasCleared = (transform.position.y - closedPos.y) > 1.8f;
+            doorCollider.enabled = !hasCleared;
         }
     }
 }
+

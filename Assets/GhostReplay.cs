@@ -2,20 +2,52 @@ using UnityEngine;
 
 public class GhostReplay : MonoBehaviour
 {
+    [Header("Limbs for Animation")]
+    public Transform leftArm;
+    public Transform rightArm;
+    public Transform leftLeg;
+    public Transform rightLeg;
+    public float swingSpeed = 8f;
+    public float swingAngle = 30f;
+
     private LoopRecording recording;
     private float replayTime;
     private Rigidbody rb;
+    private float animationTime = 0f;
+    private Vector3 previousPosition;
 
     void Awake()
     {
         gameObject.tag = "Ghost";
-        SetLayerRecursively(gameObject, 0); // Ensure ghost is on Default layer (0) so it's visible to camera
+        SetLayerRecursively(gameObject, 0); // Ensure ghost is on Default layer (0) so it is visible
 
         rb = GetComponent<Rigidbody>();
-        if (rb != null)
+        if (rb == null)
         {
-            rb.isKinematic = true;
-            rb.useGravity = false;
+            rb = gameObject.AddComponent<Rigidbody>();
+        }
+        rb.isKinematic = true;
+        rb.useGravity = false;
+
+        AutoFindLimbs();
+
+        // Disable PlayerLimbAnimation if present so GhostReplay controls limbs directly
+        PlayerLimbAnimation pla = GetComponentInChildren<PlayerLimbAnimation>();
+        if (pla != null)
+        {
+            pla.enabled = false;
+        }
+    }
+
+    private void AutoFindLimbs()
+    {
+        Transform[] allChildren = GetComponentsInChildren<Transform>();
+        foreach (Transform t in allChildren)
+        {
+            if (leftArm == null && t.name == "LeftArm") leftArm = t;
+            if (rightArm == null && t.name == "RightArm") rightArm = t;
+            if (leftLeg == null && t.name == "LeftLeg") leftLeg = t;
+            if (rightLeg == null && t.name == "RightLeg") rightLeg = t;
         }
     }
 
@@ -33,12 +65,14 @@ public class GhostReplay : MonoBehaviour
         recording = newRecording;
         replayTime = 0f;
         ApplyFrame(0f);
+        previousPosition = transform.position;
     }
 
     public void ResetReplay()
     {
         replayTime = 0f;
         ApplyFrame(0f);
+        previousPosition = transform.position;
     }
 
     void Update()
@@ -54,6 +88,32 @@ public class GhostReplay : MonoBehaviour
         }
 
         ApplyFrame(replayTime);
+
+        // Animate limbs based on movement speed
+        float speed = (transform.position - previousPosition).magnitude / Mathf.Max(Time.deltaTime, 0.001f);
+        previousPosition = transform.position;
+        AnimateLimbs(speed);
+    }
+
+    private void AnimateLimbs(float speed)
+    {
+        if (speed > 0.1f)
+        {
+            animationTime += Time.deltaTime * swingSpeed;
+            float swing = Mathf.Sin(animationTime) * swingAngle;
+
+            if (leftLeg != null) leftLeg.localRotation = Quaternion.Euler(swing, 0, 0);
+            if (rightLeg != null) rightLeg.localRotation = Quaternion.Euler(-swing, 0, 0);
+            if (leftArm != null) leftArm.localRotation = Quaternion.Euler(-swing, 0, 0);
+            if (rightArm != null) rightArm.localRotation = Quaternion.Euler(swing, 0, 0);
+        }
+        else
+        {
+            if (leftArm != null) leftArm.localRotation = Quaternion.Lerp(leftArm.localRotation, Quaternion.identity, Time.deltaTime * 10f);
+            if (rightArm != null) rightArm.localRotation = Quaternion.Lerp(rightArm.localRotation, Quaternion.identity, Time.deltaTime * 10f);
+            if (leftLeg != null) leftLeg.localRotation = Quaternion.Lerp(leftLeg.localRotation, Quaternion.identity, Time.deltaTime * 10f);
+            if (rightLeg != null) rightLeg.localRotation = Quaternion.Lerp(rightLeg.localRotation, Quaternion.identity, Time.deltaTime * 10f);
+        }
     }
 
     private void ApplyFrame(float time)
@@ -82,29 +142,10 @@ public class GhostReplay : MonoBehaviour
 
             if (time >= current.time && time <= next.time)
             {
-                float t = Mathf.InverseLerp(
-                    current.time,
-                    next.time,
-                    time
-                );
-
-                Vector3 position = Vector3.Lerp(
-                    current.position,
-                    next.position,
-                    t
-                );
-
-                Quaternion rotation = Quaternion.Slerp(
-                    current.rotation,
-                    next.rotation,
-                    t
-                );
-
-                return new PlayerFrame(
-                    time,
-                    position,
-                    rotation
-                );
+                float t = Mathf.InverseLerp(current.time, next.time, time);
+                Vector3 position = Vector3.Lerp(current.position, next.position, t);
+                Quaternion rotation = Quaternion.Slerp(current.rotation, next.rotation, t);
+                return new PlayerFrame(time, position, rotation);
             }
         }
 
